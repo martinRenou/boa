@@ -57,6 +57,7 @@ from conda_build.build import (
     write_hash_input,
     get_files_with_prefix,
     record_prefix_files,
+    copy_test_source_files,
     write_info_files_file,
     write_link_json,
     write_about_json,
@@ -105,8 +106,8 @@ def create_info_files(m, files, prefix):
     # files.extend(jsonify_info_yamls(m))
 
     # create_all_test_files(m, test_dir=join(m.config.info_dir, 'test'))
-    # if m.config.copy_test_source_files:
-    #     copy_test_source_files(m, join(m.config.info_dir, 'test'))
+    if m.config.copy_test_source_files:
+        copy_test_source_files(m, join(m.config.info_dir, 'test'))
 
     write_info_files_file(m, files)
 
@@ -266,6 +267,7 @@ def bundle_conda(metadata, initial_files, env, files_selector=None):
     files = utils.filter_files(
         prefix_files - initial_files, prefix=metadata.config.host_prefix
     )
+    # utils.rm_rf(os.path.join(metadata.config.info_dir, 'test'))
     if files_selector:
         include_files = files_selector.get("include")
         if include_files:

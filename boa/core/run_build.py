@@ -19,6 +19,7 @@ from conda.models.match_spec import MatchSpec
 from conda.base.context import context
 from conda.gateways.disk.create import mkdir_p
 from conda_build.variants import get_default_variant
+from conda_build.create_test import create_all_test_files
 
 from conda_build.index import update_index
 
@@ -267,6 +268,15 @@ def to_build_tree(ydoc, variants, config, selected_features):
     return final_outputs
 
 
+def test_recipe(meta):
+    if meta.meta.get('test', None) is None:
+        console.print(f"\n[yellow]No test for [bold]{o.name}[/bold][/yellow]\n")
+        return
+
+    _, pl_files, py_files, r_files, lua_files, shell_files = create_all_test_files(meta, test_dir=os.path.join(meta.config.info_dir, 'test'))
+    print(py_files, shell_files)
+
+
 def build_recipe(args, recipe_path, cbc, config):
 
     if args.features:
@@ -309,6 +319,9 @@ def build_recipe(args, recipe_path, cbc, config):
         variants[ydoc["package"]["name"]] = get_dependency_variants(
             ydoc.get("requirements", {}), cbc, config, features
         )
+
+    # Add Test requirements
+
 
     # this takes in all variants and outputs, builds a dependency tree and returns
     # the final metadata
@@ -379,6 +392,52 @@ def build_recipe(args, recipe_path, cbc, config):
         console.print(f"\n[yellow]Starting build for [bold]{o.name}[/bold][/yellow]\n")
 
         build(meta, None, allow_interactive=args.interactive)
+
+        console.print(f"\n[yellow]Starting tests for [bold]{o.name}[/bold][/yellow]\n")
+
+        test_recipe(meta)
+
+        # if self.meta.get('test', None) is not None:
+        #     for el in self.meta['test']:
+        #         self.meta['test/' + ]
+
+        # from pprint import pprint
+        # pprint(meta.meta)
+        # {'build': {'entry_points': ['grayskull = grayskull.__main__:main',
+        #                             'greyskull = grayskull.__main__:main'],
+        #            'noarch': 'python',
+        #            'number': 1,
+        #            'script': 'python -m pip install . --no-deps -vv'},
+        #  'features': {},
+        #  'package': {'name': 'grayskull', 'version': '0.7.3'},
+        #  'requirements': {'host': ['pip',
+        #                            'python >=3.7',
+        #                            'setuptools >=30.3.0',
+        #                            'setuptools_scm'],
+        #                   'run': ['colorama',
+        #                           'rapidfuzz >=0.7.6',
+        #                           'pip',
+        #                           'progressbar2',
+        #                           'python >=3.7',
+        #                           'requests',
+        #                           'ruamel.yaml >=0.15.3',
+        #                           'ruamel.yaml.jinja2',
+        #                           'setuptools >=30.3.0',
+        #                           'stdlib-list',
+        #                           'git']},
+        #  'source': {'sha256': 'bbbefd3cbc240c74f22322fabf7862bd36108ac9b4c42a5121b4e68636eab0af',
+        #             'url': 'https://pypi.io/packages/source/g/grayskull/grayskull-0.7.3.tar.gz'},
+        #  'test': {'commands': ['pip check', 'grayskull --help', 'greyskull --help'],
+        #           'imports': ['grayskull'],
+        #           'requires': ['pip']}}
+
+        # print('\n')
+        # # print(meta.output)
+        # print('\n')
+        # pprint(meta.config)
+
+        # from conda_build.api import test
+        # test(meta, config=meta.config)
 
     for o in sorted_outputs:
         print("\n\n")

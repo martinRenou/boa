@@ -130,6 +130,10 @@ class MetaData:
         if default is None and key in default_structs:
             default = default_structs[key]()
 
+        if key.startswith('test'):
+            command = key.split('/')[1]
+            return self.meta['test'].get(command)
+
         if key.count("/") == 2:
             section, num, key = key.split("/")
         else:
@@ -140,6 +144,32 @@ class MetaData:
             return section[int(num)].get(key, default)
         else:
             return section.get(key, default)
+
+    # def get_test_deps(self, py_files, pl_files, lua_files, r_files):
+    #     specs = ['%s %s %s' % (self.name(), self.version(), self.build_id())]
+
+    #     # add packages listed in the run environment and test/requires
+    #     specs.extend(str(ms) for ms in self.ms_depends('run'))
+    #     print("---spec", str(self.ms_depends('run')[0]))
+    #     specs += ensure_list(self.get_value('test/requires', []))
+
+    #     if py_files:
+    #         # as the tests are run by python, ensure that python is installed.
+    #         # (If they already provided python as a run or test requirement,
+    #         #  this won't hurt anything.)
+    #         specs += ['python']
+    #     if pl_files:
+    #         # as the tests are run by perl, we need to specify it
+    #         specs += ['perl']
+    #     if lua_files:
+    #         # not sure how this shakes out
+    #         specs += ['lua']
+    #     if r_files and not any(s.split()[0] in ('r-base', 'mro-base') for s in specs):
+    #         # not sure how this shakes out
+    #         specs += ['r-base']
+
+    #     specs.extend(ensure_list(self.config.extra_deps))
+    #     return specs
 
     @property
     def source_provided(self):
